@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirPods Pro - طلب عبر واتساب</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* إعادة تعيين عام */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+            cursor: none;
+        }
+
+        /* التصميم الداكن */
+        body {
+            background-color: #0c0c0c;
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* خلفية مميزة */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(41, 196, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(121, 0, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(255, 20, 138, 0.05) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        /* مؤشر مخصص */
+        .cursor {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transition: transform 0.2s;
+        }
+
+        .cursor-dot {
+            width: 4px;
+            height: 4px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+        }
+
+        /* التوسيط الكامل */
+        .center-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* القسم الرئيسي */
+        .hero-section {
+            min-height: 80vh; /* قلل من 100vh إلى 80vh */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        /* صورة المنتج */
+        .product-image-container {
+            width: 400px;
+            height: 400px;
+            margin-bottom: 30px; /* قلل من 40px إلى 30px */
+            position: relative;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s ease;
+        }
+
+        .product-image-container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 30px rgba(41, 196, 255, 0.3));
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* اسم المنتج */
+        .product-name {
+            font-size: 5rem;
+            font-weight: 900;
+            margin-bottom: 15px; /* قلل من 20px إلى 15px */
+            position: relative;
+            height: 100px;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s ease 0.3s;
+        }
+
+        .product-name.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .typing-text {
+            color: #ffffff;
+            border-right: 3px solid #29c4ff;
+            white-space: nowrap;
+            overflow: hidden;
+            display: inline-block;
+            position: relative;
+        }
+
+        /* وصف المنتج */
+        .product-description {
+            font-size: 1.5rem;
+            color: #cccccc;
+            max-width: 800px;
+            margin-bottom: 40px; /* قلل من 60px إلى 40px */
+            line-height: 1.8;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s ease 0.6s;
+        }
+
+        .product-description.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* قسم المميزات */
+        .features-section {
+            min-height: 70vh; /* قلل من 100vh إلى 70vh */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px; /* قلل من 80px إلى 40px */
+        }
+
+        .section-title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 40px; /* قلل من 80px إلى 40px */
+            position: relative;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s ease;
+        }
+
+        .section-title.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 4px;
+            background: linear-gradient(90deg, #29c4ff, #7900ff);
+            border-radius: 2px;
+        }
+
+        /* بطاقات المميزات */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px; /* قلل من 40px إلى 30px */
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .feature-card {
+            width: 100%;
+            height: 300px;
+            border-radius: 20px;
+            padding: 2px;
+            background: radial-gradient(circle 230px at 0% 0%, #ffffff, #0c0d0d);
+            position: relative;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease;
+        }
+
+        .feature-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feature-card:nth-child(1) { transition-delay: 0.1s; }
+        .feature-card:nth-child(2) { transition-delay: 0.2s; }
+        .feature-card:nth-child(3) { transition-delay: 0.3s; }
+        .feature-card:nth-child(4) { transition-delay: 0.4s; }
+
+        .feature-card .dot {
+            width: 6px;
+            aspect-ratio: 1;
+            position: absolute;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px #ffffff;
+            border-radius: 100px;
+            z-index: 2;
+            right: 10%;
+            top: 10%;
+            animation: moveDot 6s linear infinite;
+        }
+
+        @keyframes moveDot {
+            0%, 100% { top: 10%; right: 10%; }
+            25% { top: 10%; right: calc(100% - 35px); }
+            50% { top: calc(100% - 30px); right: calc(100% - 35px); }
+            75% { top: calc(100% - 30px); right: 10%; }
+        }
+
+        .feature-card .card-content {
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            border-radius: 18px;
+            border: solid 1px #202222;
+            background: radial-gradient(circle 280px at 0% 0%, #444444, #0c0d0d);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            color: #ffffff;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .feature-card .icon {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            color: #29c4ff;
+        }
+
+        .feature-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        .feature-card p {
+            color: #cccccc;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        /* قسم آراء العملاء */
+        .testimonials-section {
+            min-height: 70vh; /* قلل من 100vh إلى 70vh */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px; /* قلل من 80px إلى 40px */
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px; /* قلل من 40px إلى 30px */
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .testimonial-card {
+            background: linear-gradient(135deg, #fffffff5, #3a4b8a, #ffffff98);
+            padding: 2px;
+            border-radius: 20px;
+            box-shadow: 0px 1rem 1.5rem -0.9rem #000000e1;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease;
+        }
+
+        .testimonial-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .testimonial-card:nth-child(1) { transition-delay: 0.1s; }
+        .testimonial-card:nth-child(2) { transition-delay: 0.2s; }
+        .testimonial-card:nth-child(3) { transition-delay: 0.3s; }
+
+        .testimonial-card .card-inner {
+            font-size: 1rem;
+            color: #bec4cf;
+            background: linear-gradient(135deg, #0d1120 0%, #3a4b8a 43%, #0d1120 100%);
+            padding: 2rem;
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .testimonial-card .customer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .testimonial-card .customer img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 3px solid #29c4ff;
+        }
+
+        .testimonial-card .customer h4 {
+            font-size: 1.3rem;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+
+        .testimonial-card .customer p {
+            color: #cccccc;
+            font-size: 0.9rem;
+        }
+
+        .testimonial-card .stars {
+            color: #ffc107;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        /* زر الطلب */
+        .order-section {
+            min-height: 40vh; /* قلل من 50vh إلى 40vh */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px; /* قلل من 80px إلى 40px */
+        }
+
+        .whatsapp-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            color: white;
+            font-size: 2rem;
+            font-weight: 900;
+            padding: 25px 60px;
+            border-radius: 60px;
+            text-decoration: none;
+            box-shadow: 0 15px 40px rgba(37, 211, 102, 0.3);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 30px; /* قلل من 40px إلى 30px */
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s ease;
+        }
+
+        .whatsapp-btn.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .whatsapp-btn:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 20px 50px rgba(37, 211, 102, 0.5);
+        }
+
+        .whatsapp-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.7s;
+        }
+
+        .whatsapp-btn:hover:before {
+            left: 100%;
+        }
+
+        .whatsapp-btn i {
+            font-size: 2.8rem;
+            margin-left: 20px;
+        }
+
+        .order-note {
+            font-size: 1.3rem;
+            color: #cccccc;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        /* الفوتر */
+        .footer-section {
+            padding: 40px 20px; /* قلل من 60px إلى 40px */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-top: 1px solid #202222;
+            margin-top: 30px; /* قلل من 40px إلى 30px */
+        }
+
+        .footer-logo {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #29c4ff;
+            margin-bottom: 15px; /* قلل من 20px إلى 15px */
+        }
+
+        .copyright {
+            font-size: 1rem;
+            color: #999999;
+            text-align: center;
+        }
+
+        /* تصميم متجاوب */
+        @media (max-width: 1024px) {
+            .product-image-container {
+                width: 350px;
+                height: 350px;
+            }
+            
+            .product-name {
+                font-size: 4rem;
+            }
+            
+            .section-title {
+                font-size: 3rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .product-image-container {
+                width: 300px;
+                height: 300px;
+            }
+            
+            .product-name {
+                font-size: 3.5rem;
+                height: 80px;
+            }
+            
+            .product-description {
+                font-size: 1.3rem;
+            }
+            
+            .section-title {
+                font-size: 2.5rem;
+            }
+            
+            .whatsapp-btn {
+                font-size: 1.6rem;
+                padding: 20px 40px;
+            }
+            
+            .whatsapp-btn i {
+                font-size: 2.2rem;
+            }
+            
+            .features-section,
+            .testimonials-section,
+            .order-section {
+                padding: 30px 15px; /* قلل المسافات في الشاشات الصغيرة */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .product-image-container {
+                width: 250px;
+                height: 250px;
+            }
+            
+            .product-name {
+                font-size: 2.8rem;
+                height: 70px;
+            }
+            
+            .product-description {
+                font-size: 1.1rem;
+            }
+            
+            .section-title {
+                font-size: 2.2rem;
+            }
+            
+            .features-grid,
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+                gap: 20px; /* قلل المسافات أكثر في الشاشات الصغيرة جداً */
+            }
+            
+            .whatsapp-btn {
+                font-size: 1.4rem;
+                padding: 18px 35px;
+            }
+            
+            .features-section,
+            .testimonials-section,
+            .order-section {
+                padding: 20px 10px; /* قلل المسافات أكثر في الشاشات الصغيرة جداً */
+                min-height: 60vh; /* قلل الارتفاع في الشاشات الصغيرة */
+            }
+            
+            .hero-section {
+                min-height: 70vh; /* قلل الارتفاع في الشاشات الصغيرة */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- مؤشر مخصص -->
+    <div class="cursor"></div>
+    <div class="cursor-dot"></div>
+
+    <!-- القسم الرئيسي -->
+    <section class="hero-section center-container">
+        <div class="product-image-container" id="productImage">
+            <img src="awi.png" alt="AirPods Pro" class="product-image">
+        </div>
+        
+        <h1 class="product-name" id="productName">
+            <span class="typing-text" id="typingText"></span>
+        </h1>
+        
+        <p class="product-description" id="productDescription">
+            استمتع بتجربة صوتية لا مثيل لها مع AirPods Pro. جودة صوت استثنائية، تقنية كبح الضجيج النشط، مقاومة للماء والعرق، وتصميم مريح للارتداء طوال اليوم. الصوت كما لم تسمعه من قبل.
+        </p>
+    </section>
+
+    <!-- قسم المميزات -->
+    <section class="features-section center-container">
+        <h2 class="section-title" id="featuresTitle">المميزات الرائعة</h2>
+        
+        <div class="features-grid">
+            <div class="feature-card" id="feature1">
+                <div class="dot"></div>
+                <div class="card-content">
+                    <div class="icon">
+                        <i class="fas fa-volume-up"></i>
+                    </div>
+                    <h3>كبح ضجيج نشط</h3>
+                    <p>تقنية متطورة تتيح لك التركيز على الموسيقى والمكالمات بحجب الضوضاء الخارجية</p>
+                </div>
+            </div>
+            
+            <div class="feature-card" id="feature2">
+                <div class="dot"></div>
+                <div class="card-content">
+                    <div class="icon">
+                        <i class="fas fa-tint"></i>
+                    </div>
+                    <h3>مقاوم للماء والعرق</h3>
+                    <p>تصميم خاص يحمي السماعات من الماء والعرق أثناء التمرين أو الاستخدام اليومي</p>
+                </div>
+            </div>
+            
+            <div class="feature-card" id="feature3">
+                <div class="dot"></div>
+                <div class="card-content">
+                    <div class="icon">
+                        <i class="fas fa-battery-full"></i>
+                    </div>
+                    <h3>بطارية طويلة الأمد</h3>
+                    <p>حتى 6 ساعات تشغيل مستمر و 24 ساعة باستخدام علبة الشحن اللاسلكية</p>
+                </div>
+            </div>
+            
+            <div class="feature-card" id="feature4">
+                <div class="dot"></div>
+                <div class="card-content">
+                    <div class="icon">
+                        <i class="fas fa-magic"></i>
+                    </div>
+                    <h3>ربط تلقائي</h3>
+                    <p>ربط تلقائي مع أجهزة Apple بمجرد فتح العلبة بالقرب من الجهاز</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- قسم آراء العملاء -->
+    <section class="testimonials-section center-container">
+        <h2 class="section-title" id="testimonialsTitle">اراء عملائنا</h2>
+        
+        <div class="testimonials-grid">
+            <div class="testimonial-card" id="testimonial1">
+                <div class="card-inner">
+                    <div class="customer">
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="عميل">
+                        <h4>أحمد السعيد</h4>
+                        <p>مستخدم منذ 6 أشهر</p>
+                    </div>
+                    <div class="stars">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p>جودة صوت مذهلة وراحة في الاستخدام. أفضل سماعات اشتريتها على الإطلاق!</p>
+                </div>
+            </div>
+            
+            <div class="testimonial-card" id="testimonial2">
+                <div class="card-inner">
+                    <div class="customer">
+                        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="عميلة">
+                        <h4>سارة محمد</h4>
+                        <p>مستخدمة منذ 4 أشهر</p>
+                    </div>
+                    <div class="stars">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                    </div>
+                    <p>ممتازة للتمارين الرياضية، لا تسقط من الأذن ومقاومة للعرق بشكل ممتاز.</p>
+                </div>
+            </div>
+            
+            <div class="testimonial-card" id="testimonial3">
+                <div class="card-inner">
+                    <div class="customer">
+                        <img src="https://randomuser.me/api/portraits/men/65.jpg" alt="عميل">
+                        <h4>خالد الحربي</h4>
+                        <p>مستخدم منذ سنة</p>
+                    </div>
+                    <div class="stars">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p>البطارية تدوم طويلاً جداً، والجودة استثنائية. أنصح الجميع بها!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- قسم الطلب -->
+    <section class="order-section center-container">
+        <a href="https://wa.me/966500000000?text=مرحباً، أريد طلب AirPods Pro" class="whatsapp-btn" id="whatsappBtn" target="_blank">
+            <i class="fab fa-whatsapp"></i>
+            <span>اطلب عبر واتساب الآن</span>
+        </a>
+        <p class="order-note">اضغط على الزر للتواصل معنا عبر واتساب وإتمام الطلب خلال دقائق. توصيل سريع لجميع مناطق المملكة.</p>
+    </section>
+
+    <!-- الفوتر -->
+    <footer class="footer-section center-container">
+        <div class="footer-logo">AirPods Pro</div>
+        <p class="copyright">جميع الحقوق محفوظة &copy; 2023 | طلب AirPods Pro عبر واتساب</p>
+        <p class="copyright" style="margin-top: 10px; font-size: 0.9rem;">هذا الموقع غير تابع لشركة Apple وهو لأغراض توضيحية فقط</p>
+    </footer>
+
+    <script>
+        // مؤشر مخصص يتحرك مع الماوس
+        const cursor = document.querySelector('.cursor');
+        const cursorDot = document.querySelector('.cursor-dot');
+        
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+            cursorDot.style.left = e.clientX + 'px';
+            cursorDot.style.top = e.clientY + 'px';
+        });
+
+        // تأثير الكتابة لـ AirPods Pro
+        const typingText = document.getElementById('typingText');
+        const text = "AirPods Pro";
+        let index = 0;
+        
+        function typeWriter() {
+            if (index < text.length) {
+                typingText.innerHTML += text.charAt(index);
+                index++;
+                setTimeout(typeWriter, 150);
+            } else {
+                // إضافة وميض المؤشر بعد الانتهاء من الكتابة
+                typingText.style.borderRight = '3px solid transparent';
+                setInterval(() => {
+                    typingText.style.borderRight = typingText.style.borderRight === '3px solid transparent' ? 
+                        '3px solid #29c4ff' : '3px solid transparent';
+                }, 500);
+            }
+        }
+        
+        // تفعيل العناصر عند التمرير
+        function checkVisibility() {
+            const elements = document.querySelectorAll(
+                '.product-image-container, .product-name, .product-description, ' +
+                '.section-title, .feature-card, .testimonial-card, .whatsapp-btn'
+            );
+            
+            elements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const elementVisible = 100;
+                
+                if (elementTop < window.innerHeight - elementVisible) {
+                    element.classList.add('visible');
+                }
+            });
+        }
+        
+        // تهيئة الصفحة
+        window.addEventListener('load', () => {
+            // بدء تأثير الكتابة بعد تأخير بسيط
+            setTimeout(typeWriter, 500);
+            
+            // إظهار العناصر في القسم الرئيسي
+            document.getElementById('productImage').classList.add('visible');
+            document.getElementById('productName').classList.add('visible');
+            document.getElementById('productDescription').classList.add('visible');
+            
+            // التحقق من العناصر المرئية
+            checkVisibility();
+        });
+        
+        // التحقق من العناصر عند التمرير
+        window.addEventListener('scroll', checkVisibility);
+        
+        // إضافة تأثير عند المرور على البطاقات
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                const dot = card.querySelector('.dot');
+                if (dot) {
+                    dot.style.transform = 'scale(1.5)';
+                    dot.style.boxShadow = '0 0 20px #ffffff';
+                }
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                const dot = card.querySelector('.dot');
+                if (dot) {
+                    dot.style.transform = 'scale(1)';
+                    dot.style.boxShadow = '0 0 10px #ffffff';
+                }
+            });
+        });
+        
+        // إضافة تأثير النقر على زر واتساب
+        document.getElementById('whatsappBtn').addEventListener('click', function(e) {
+            // تأثير التموج
+            const ripple = document.createElement('span');
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.cssText = `
+                position: absolute;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.7);
+                transform: scale(0);
+                animation: ripple 0.6s linear;
+                width: ${size}px;
+                height: ${size}px;
+                top: ${y}px;
+                left: ${x}px;
+                pointer-events: none;
+            `;
+            
+            this.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+            
+            // صوت نقر افتراضي
+            console.log('تم النقر على زر الطلب');
+        });
+        
+        // إضافة أنميشن التموج
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // التأكد من توسيط كل شيء عند تغيير حجم النافذة
+        window.addEventListener('resize', () => {
+            // إعادة تعيين ظهور العناصر
+            checkVisibility();
+        });
+    </script>
+</body>
+</html>
